@@ -1,7 +1,7 @@
 import User from "../models/user.models.js";
 import bcryptjs from 'bcryptjs';
 
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
     const { username, email, password } = req.body;
     // destructure all we need and use it and save it in the database
     // later we want to change the password not as it is save to the database
@@ -13,7 +13,8 @@ export const signup = async (req, res) => {
         await newUser.save()
         res.status(201).json("User created successfully")
     } catch (error) {
-        res.status(500).json(error.message)
+        // res.status(500).json(error.message) remove it 
+        next(error)
     }
 
     // try {

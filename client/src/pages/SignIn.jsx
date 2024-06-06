@@ -27,7 +27,10 @@ export default function SignIn() {
 
     try {
       // setLoading(true) 
+      console.log("Dispatching signInStart");
       dispatch(signInStart());
+
+      console.log("Sending POST request to /api/auth/signin");
       const res = await fetch('/api/auth/signin',
         {
           method: 'POST',
@@ -37,16 +40,20 @@ export default function SignIn() {
           body: JSON.stringify(formData)
         }
       );
+
+      console.log("Awaiting response");
+      console.log('Response Get')
       const data = await res.json();
-      console.log(data);
+      console.log("Response received:", data);
       if(data.success === false){
         // setLoading(false)  
         // setError(data.message);
-        dispatch(signInFailure(data.message));
+        dispatch(signInFailure(data.message || 'Sign-in failed'));
         return;
       }
       // setLoading(false)
       // setError(null)
+      console.log("Sign-in successful, dispatching signInSuccess");
       dispatch(signInSuccess(data))
       navigate('/')
     } catch (error) {
@@ -94,7 +101,7 @@ export default function SignIn() {
  
       <div className='flex gap-2 mt-5'>
         <p>Dont have an account ?</p>
-        <Link to={'/sign-up'}>
+        <Link to={'/Sign-Up'}>
         <span className='text-blue-700'>Sign Up</span>
         </Link>
       </div>

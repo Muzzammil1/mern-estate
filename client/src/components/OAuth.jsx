@@ -25,7 +25,7 @@ export default function OAuth() {
             }
         const data = await res.json()
         dispatch(signInSuccess(data))
-        navigate("/")
+        navigate('/')
             
         } catch (error) {
             console.log('Could not Sign with google OAuth.jsx Catch', error);

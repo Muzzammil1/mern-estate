@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useRef, useState, useEffect } from 'react'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import {Link} from 'react-router-dom';
 import { app } from '../firebase';
 import { updateUserStart, 
   updateUserSuccess, 
@@ -165,10 +166,10 @@ export default function Profile() {
           {loading? 'Loading...': 'Update'}
         </button>
 
-        <button
-          className='bg-green-900 text-white p-3 rounded-lg uppercase hover:opacity-80'>
+        <Link to={"/create-listing"}
+          className='bg-green-900 text-white text-center p-3 rounded-lg uppercase hover:opacity-95'>
           Creating List
-        </button>
+        </Link>
 
         <div className="flex justify-between">
           <div onClick={handleDeleteUser} className='text-red-800'>Delete Account</div>

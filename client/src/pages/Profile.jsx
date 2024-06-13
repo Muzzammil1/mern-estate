@@ -7,7 +7,10 @@ import { updateUserStart,
   updateUserFailure, 
   deleteUserFailure, 
   deleteUserStart,
-  deleteUserSuccess} from '../redux/user/userSlice';
+  deleteUserSuccess,
+  signOutUserFailure,
+  signOutUserStart,
+  signOutUserSuccess} from '../redux/user/userSlice';
 
 export default function Profile() {
   const fileRef = useRef(null)
@@ -98,6 +101,21 @@ export default function Profile() {
       dispatch(deleteUserFailure(error.message))
     }
   }
+
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart())
+      const res = await fetch('/api/auth/signout');
+      const data = await res.json();
+      if(data.success === false) {
+        dispatch(signOutUserFailure(data.message))
+        return;
+      }
+      dispatch(signOutUserSuccess(data))
+    } catch (error) {
+      dispatch(signOutUserFailure(data.message))
+    }
+  }
   return (
     <div className='w-2/3 mx-auto'>
       <h1 className='text-center my-6 font-bold text-3xl'>Profile page</h1>
@@ -154,7 +172,7 @@ export default function Profile() {
 
         <div className="flex justify-between">
           <div onClick={handleDeleteUser} className='text-red-800'>Delete Account</div>
-          <div className='text-red-800'>Sign out</div>
+          <div onClick={handleSignOut} className='text-red-800'>Sign out</div>
         </div>
         <p className='text-red-700 mt-5 text-center'>{error?error:''}</p>
         <p className='text-green-700 mt-4 text-center'>{UpdateSuccess?'User is updated successfully!':''}</p>

@@ -1,26 +1,31 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useRef, useState, useEffect } from 'react'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { app } from '../firebase';
-import { updateUserStart, 
-  updateUserSuccess, 
-  updateUserFailure, 
-  deleteUserFailure, 
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  deleteUserFailure,
   deleteUserStart,
   deleteUserSuccess,
   signOutUserFailure,
   signOutUserStart,
-  signOutUserSuccess} from '../redux/user/userSlice';
+  signOutUserSuccess
+} from '../redux/user/userSlice';
+import Listing from '../../../api/models/listing.model';
 
 export default function Profile() {
   const fileRef = useRef(null)
-  const { currentUser, loading, error} = useSelector((state) => state.user)
+  const { currentUser, loading, error } = useSelector((state) => state.user)
   const [file, setFile] = useState(undefined)
   const [filePerc, setFilePerc] = useState(0)
   const [fileUploadError, setFileUploadError] = useState(false)
   const [formData, setFormData] = useState({});
   const [UpdateSuccess, setUpdateSuccess] = useState(false)
+  const [showListingsError, setshowListingsError] = useState(false)
+  const [userListings , setUserListings] = useState([])
   const dispatch = useDispatch();
   // console.log(formData)
   // console.log(filePerc);
@@ -73,27 +78,27 @@ export default function Profile() {
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if(data.success === false){
+      if (data.success === false) {
         dispatch(updateUserFailure(data.message))
         return
       }
-        dispatch(updateUserSuccess(data))
-        setUpdateSuccess(true)
-      
+      dispatch(updateUserSuccess(data))
+      setUpdateSuccess(true)
+
     } catch (error) {
       console.error('Error during user update: Catch Block But why its running', error);
-        dispatch(updateUserFailure(error.message))
+      dispatch(updateUserFailure(error.message))
     }
   }
 
-  const handleDeleteUser =async ()=>{
+  const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
       const res = await fetch(`/api/user/delete/${currentUser._id}`, {
         method: 'DELETE',
       })
       const data = await res.json();
-      if(data.success === false) {
+      if (data.success === false) {
         dispatch(deleteUserFailure(data.message));
         return;
       }
@@ -108,7 +113,7 @@ export default function Profile() {
       dispatch(signOutUserStart())
       const res = await fetch('/api/auth/signout');
       const data = await res.json();
-      if(data.success === false) {
+      if (data.success === false) {
         dispatch(signOutUserFailure(data.message))
         return;
       }
@@ -117,6 +122,22 @@ export default function Profile() {
       dispatch(signOutUserFailure(data.message))
     }
   }
+
+  const handleShowListings = async () => {
+    try {
+      setshowListingsError(false)
+      const res = await fetch(`/api/user/listings/${currentUser._id}`)
+      const data = await res.json();
+      if (data.success === false) {
+        setshowListingsError(true);
+        return;
+      }
+      setUserListings(data)
+      console.log(userListings);
+    } catch (error) {
+      showListingsError(true)
+    }
+  };
   return (
     <div className='w-2/3 mx-auto'>
       <h1 className='text-center my-6 font-bold text-3xl'>Profile page</h1>
@@ -163,21 +184,49 @@ export default function Profile() {
         <button
           disabled={loading}
           className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-80 '>
-          {loading? 'Loading...': 'Update'}
+          {loading ? 'Loading...' : 'Update'}
         </button>
 
         <Link to={"/create-listing"}
           className='bg-green-900 text-white text-center p-3 rounded-lg uppercase hover:opacity-95'>
           Creating List
         </Link>
-
-        <div className="flex justify-between">
-          <div onClick={handleDeleteUser} className='text-red-800'>Delete Account</div>
-          <div onClick={handleSignOut} className='text-red-800'>Sign out</div>
-        </div>
-        <p className='text-red-700 mt-5 text-center'>{error?error:''}</p>
-        <p className='text-green-700 mt-4 text-center'>{UpdateSuccess?'User is updated successfully!':''}</p>
       </form>
+      <div className="flex justify-between">
+        <div onClick={handleDeleteUser} className='text-red-800'>Delete Account</div>
+        <div onClick={handleSignOut} className='text-red-800'>Sign out</div>
+      </div>
+      <p className='text-red-700 mt-5 text-center'>{error ? error : ''}</p>
+      <p className='text-green-700 mt-4 text-center'>{UpdateSuccess ? 'User is updated successfully!' : ''}</p>
+      <button onClick={handleShowListings} className='w-full text-green-700'>Show Listings</button>
+      <p className='text-red-700 mt-5'>{showListingsError ? 'Error showing listings' : ''}</p>
+
+      {userListings && userListings.length > 0 &&
+      <div className='flex flex-col gap-4'>
+        <h1 className='text-center font-bold text-2xl'>Your Listings</h1>
+        {userListings.map((listing) => (
+          <div key={listing._id}
+           className='border rounded flex p-3 justify-between items-center gap-4'>
+            <Link to={`/listing/${listing._id}`}>
+            <img src={listing.imageUrls[0]} alt="cover Listing Image" 
+            className='h-16 w-16 object-contain'/>
+            </Link>
+
+            <Link className='flex-1  text-slate-700 font-semibold  hover:underline truncate' to={`/listing/${listing._id}`}>
+            <p className=''>{listing.name}</p>
+            </Link>
+
+            <div className='flex flex-col items-center'>
+              <button className='uppercase text-red-700'>Delete</button>
+              <button className='uppercase text-green-700'>Edit</button>
+            </div>
+          </div>
+
+
+        ))}
+        </div>}
+
+
     </div>
   )
 }
